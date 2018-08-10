@@ -17,7 +17,7 @@ android {
         release {
             keyAlias 'macjenkinkey'
             keyPassword "123456"
-            storeFile file('../macjenkinkey')
+            storeFile file("$projectDir/macjenkinkey")
             storePassword "123456"
         }
     }
