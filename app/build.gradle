@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
+    buildToolsVersion '28.0.2'
     defaultConfig {
         applicationId "com.example.zachary.cenosjenkins"
         minSdkVersion 15
@@ -10,13 +11,71 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
+
+    signingConfigs {
+        release {
+            keyAlias 'macjenkinkey'
+            keyPassword "123456"
+            storeFile file('../macjenkinkey')
+            storePassword "123456"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+
+        debug {
+            signingConfig signingConfigs.release
+
         }
     }
-    buildToolsVersion '28.0.2'
+
+    //渠道Flavors
+    productFlavors {
+        xiaomi {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "xiaomi"]
+        }
+        wandoujia {
+            manifestPlaceholders = [UMENG_CHANNEL_VALUE: "wandoujia"]
+        }
+    }
+
+
+    android.applicationVariants.all {
+        variant ->
+            variant.outputs.all {
+                //新名字
+                def newName
+                //时间戳
+                def timeNow
+                //输出文件夹
+                def outDirectory
+                //是否为Jenkins打包，输出路径不同
+                if ("true".equals(IS_JENKINS)) {
+
+                    timeNow = BUILD_TIME
+                    outDirectory = BUILD_PATH_JENKINS
+                    //BUILD_PATH为服务器输出路径
+                    variant.getPackageApplication().outputDirectory = new File(outDirectory)
+                    newName = APPNAME + "-v" + APP_VERSION + '-' + variant.productFlavors[0].name + '-' + variant.buildType.name + '.apk'
+                } else {
+
+                    timeNow = getDate()
+                    outDirectory = BUILD_PATH_LOCAL
+                    //本机打包输出在本机路径
+                    variant.getPackageApplication().outputDirectory = new File(outDirectory)
+                    newName = APPNAME + "-v" + APP_VERSION + '-' + variant.productFlavors[0].name + '-' + variant.buildType.name + '.apk'
+                }
+                //在这里修改apk文件名
+                outputFileName = newName
+
+            }
+    }
+
 }
 
 dependencies {
